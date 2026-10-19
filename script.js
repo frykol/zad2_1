@@ -5,17 +5,39 @@
   const cw3 = document.getElementById('cw3')
   const answer = document.getElementById('answer')
 
-  example.addEventListener("click", function () {
-    fetch('https://jsonplaceholder.typicode.com/posts')
+  let isLoading = false;
+
+  const setLoading = (loading) => {
+    isLoading = loading;
+    answer.textContent = loading ? 'Loading...' : '';
+  }
+
+  const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const fetchPosts = () => {
+    setLoading(true);
+
+    return fetch('https://jsonplaceholder.typicode.com/posts')
       .then(response => response.json())
-      .then(array => {
+      .then(async (array) => {
         console.log(array)
-        answer.innerHTML = JSON.stringify(array);
+        await wait(1000);
+        return array;
       })
+      .finally(() => {
+        setLoading(false);
+      });
+  }
+
+  example.addEventListener("click", function () {
+    fetchPosts().then(array => {
+      answer.textContent = JSON.stringify(array, null, 2);
+    })
   })
 
   cw1.addEventListener("click", function () {
-    fetch('https://jsonplaceholder.typicode.com/posts').then(response => response.json()).then(array => {
+    fetchPosts().then(array => {
+      answer.innerHTML = '';
       array.forEach(post => {
         let newDiv = document.createElement("div");
         let new_p = document.createElement("p");
@@ -27,12 +49,11 @@
         new_h2.textContent = post.title;
         new_p.textContent = post.body;
         new_id_p.textContent = post_and_user_id;
-        
+
         newDiv.appendChild(new_id_p);
         newDiv.appendChild(new_h2);
         newDiv.appendChild(new_p);
         answer.appendChild(newDiv);
-
       });
     });
   })
