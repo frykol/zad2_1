@@ -7,6 +7,23 @@
 
   const select = document.getElementById('select');
 
+  const form = document.getElementById('form');
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    
+    const formData = new FormData(form);
+    const post = {
+      title: formData.get('title'),
+      body: formData.get('body'),
+      userId: 1
+    };
+
+    CreatePost(post).then(createdPost => {
+      answer.innerHTML = 'Dodano nowy post o id: ' + createdPost.id + '<br>' + JSON.stringify(createdPost, null, 2);
+    });
+  });
+
   for (let i = 0; i< 10; i++) {
     let option = document.createElement("option");
     option.value = i + 1;
@@ -15,6 +32,12 @@
   }
 
   let isLoading = false;
+  let isProcessing = false;
+
+  const setProcessing = (processing) => {
+    isProcessing = processing;
+    answer.textContent = processing ? 'Processing...' : '';
+  }
 
   const setLoading = (loading) => {
     isLoading = loading;
@@ -50,6 +73,27 @@
       })
       .finally(() => {
         setLoading(false);
+      });
+  }
+
+  const CreatePost = (post) => {
+    setProcessing(true);
+
+    return fetch(`https://jsonplaceholder.typicode.com/posts`, {
+      method: 'POST',
+      body: JSON.stringify(post),
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      },
+    })
+      .then(response => response.json())
+      .then(async (post) => {
+        console.log(post)
+        await wait(1000);
+        return post;
+      })
+      .finally(() => {
+        setProcessing(false);
       });
   }
 
